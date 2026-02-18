@@ -2,12 +2,14 @@ import polyglot
 import json
 from transformers import BertTokenizer, BertModel
 import torch
+from logs.logs import echo
 
 # Load pre-trained model and tokenizer
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 model = BertModel.from_pretrained('bert-base-uncased')
 
 def analyze_sentiment(text):
+    echo()
     """Analyzes sentiment of a given text using BERT."""
     inputs = tokenizer(text, return_tensors="pt")
     outputs = model(**inputs)

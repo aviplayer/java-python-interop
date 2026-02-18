@@ -1,1 +1,1 @@
-pythonLibsPath = "/home/aviplayer/views/playground/ml-svc/build/resources/main/org.graalvm.python.vfs/venv/lib/python3.11/site-packages/"
+pythonLibsPath = "/lib/python3.11/site-packages/"

@@ -32,7 +32,7 @@ class Main
 
 private fun getVirtualFileSystem(): VirtualFileSystem {
     return VirtualFileSystem.newBuilder()
-        .resourceDirectory("GRAALPY-VFS/com.ml/ml-svc")
+        .resourceDirectory("environment")
         .build()
 }
 
@@ -40,10 +40,17 @@ private fun getVirtualFileSystem(): VirtualFileSystem {
 
 fun main() {
     val cfg = loadTomlConfig("/config.toml")
+
+    val pythoBasePath = Main::class.java.getResource("/python")!!.path
+    val venv =  Main::class.java.getResource("/environment")!!
+        .path.plus("/venv")
+        .plus(cfg.pythonLibsPath)
+
     GraalPyResources.contextBuilder(getVirtualFileSystem())
         .allowAllAccess(true)
         // allows python to access the java language
         .allowHostAccess(HostAccess.ALL)
+        .option("python.PythonPath", pythoBasePath)
         // allow access to the virtual and the host filesystem, as well as sockets
         .allowIO(IOAccess.ALL)
         // allow creating python threads
@@ -58,7 +65,22 @@ fun main() {
                 .let { Source.newBuilder("python", it)
                     .build() }
 
-            val importLibsCode = "import sys; sys.path.append('${cfg?.pythonLibsPath}')"
+            ctx.eval("python", """
+                import os, sys
+                print("CWD:", os.getcwd())
+                print("ROOT:", os.listdir("/"))
+                print("HAS /python:", os.path.exists("/python"))
+                if os.path.exists("/python"):
+                    print("/python:", os.listdir("/python"))
+                print("sys.path:")
+                for p in sys.path:
+                    print(" -", p)
+                """.trimIndent())
+
+            println("Base path: $venv")
+
+
+            val importLibsCode = "import sys; sys.path.append('${venv}')"
 
             ctx.eval("python", importLibsCode)
 
